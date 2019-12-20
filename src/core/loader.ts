@@ -33,7 +33,7 @@ function readReport(report: string) {
 export function loadReports(options: ReportOptions) {
   const reportsDir = (options.reportDir as string) || 'reports'
   let reports = readReportsDir(reportsDir)
-  return reports.map((report: Report) => {
+  return reports.map((report: string) => {
     logger.info(`Loading report...${report}`)
     const data = readReport(path.resolve(`${reportsDir}/${report}`))
     const json = YAML.parse(data)
