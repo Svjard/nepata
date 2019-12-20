@@ -80,6 +80,10 @@ describe('Report Generate Tests', () => {
       reportDir: path.resolve('test/schemas/t4')
     })
 
+    await db.collection('dataset').insertMany([
+      { name: 'foo' }
+    ])
+
     try {
       await generateReports({
         mongoUri: 'mongodb://localhost:27017',
@@ -110,6 +114,7 @@ describe('Report Generate Tests', () => {
     }, reports)
 
     const collections = await db.listCollections({}).toArray()
+    console.log('collections', collections)
     expect(collections.length).toEqual(2)
     expect(collections.find((c: any) => c.name === 'dataset')).toBeTruthy()
     expect(collections.find((c: any) => c.name === 'testReport')).toBeTruthy()

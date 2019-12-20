@@ -16,7 +16,7 @@ describe('Reports Loader Tests', () => {
     }
   })
 
-  it('should fail if reports directory is not readable', async () => {
+  it.skip('should fail if reports directory is not readable', async () => {
     try {
       await loadReports({
         mongoUri: 'mongodb://localhost:27017',
@@ -31,7 +31,7 @@ describe('Reports Loader Tests', () => {
     }
   })
 
-  it('should fail if yaml file cannot be read', async () => {
+  it.skip('should fail if yaml file cannot be read', async () => {
     try {
       await loadReports({
         mongoUri: 'mongodb://localhost:27017',
