@@ -1,0 +1,22 @@
+---
+collection: dataset
+name: testReport
+relations:
+  - collection: t1
+    localField: t1name
+    foreignField: name
+    unwind: true
+  - collection: t2
+    localField: t2name
+    foreignField: name
+    unwind: true
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item
+  - name: t1age
+    value: t1.age
+    description: Blah
+  - name: t2weight
+    value: t2.weight
+    description: Blah

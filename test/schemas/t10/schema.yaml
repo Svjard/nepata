@@ -1,0 +1,10 @@
+---
+collection: dataset
+name: testReport
+rentention:
+  days: 10
+  field: createdAt
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item

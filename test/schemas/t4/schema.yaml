@@ -1,0 +1,12 @@
+---
+collection: dataset
+name: testReport
+relations:
+  - collection: doesnotexist
+    localField: myid
+    foreignField: _id
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item
+

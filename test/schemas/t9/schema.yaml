@@ -1,0 +1,20 @@
+---
+collection: dataset
+name: testReport
+relations:
+  - collection: t1
+    localField: t1name
+    foreignField: name
+  - collection: t2
+    localField: t2name
+    foreignField: name
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item
+  - name: totalAge
+    value: sum(t1[].age)
+    description: Blah
+  - name: totalWeight
+    value: sum(t2[].weight)
+    description: Blah

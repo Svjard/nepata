@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "collection": {
+      "type": "string"
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "batchSize": { "type": "integer" }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": ["last-run", "all"]
+        },
+        "field": { "type": "string" }
+      },
+      "allOf": [{
+        "if": {
+          "properties": {
+            "type": {
+              "enum": ["last-run"]
+            }
+          }
+        },
+        "then": {
+          "required": ["type", "field"]
+        },
+        "else": {
+          "required": ["type"]
+        }
+      }]
+    },
+    "retention": {
+      "type": "object",
+      "properties": {
+        "days": { "type": "integer" },
+        "field": { "type": "string" }
+      },
+      "required": ["field"]
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "collection": { "type": "string" },
+          "localField": { "type": "string" },
+          "foreignField": { "type": "string" },
+          "filter": { "type": "string" },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string" },
+                "direction": { "enum": ["asc","desc"] }
+              },
+              "required": ["field", "direction"]
+            }
+          },
+          "unwind": { "type": "boolean" }
+        },
+        "required": ["collection", "localField", "foreignField"]
+      }
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "string" },
+          "description": { "type": "string" },
+          "type": { "type": "string" },
+          "fallback": { "type": ["number", "string", "boolean", "array", "object", "null"] }
+        },
+        "required": ["name", "value"]
+      }
+    }
+  },
+  "required": ["name", "collection", "fields"]
+}
