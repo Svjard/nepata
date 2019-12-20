@@ -29,7 +29,7 @@ export class ConfluencePlugin implements Plugin {
       method: 'GET',
       url: `${this.options.url}/rest/api/space`,
       headers: {
-        Authorization: `Basic ${new Buffer(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
         'Content-Type': 'application/json'
       }
     })
@@ -42,7 +42,7 @@ export class ConfluencePlugin implements Plugin {
       method: 'GET',
       url: `${this.options.url}/rest/api/content?title=${encodeURIComponent(this.options.title)}&spaceKey=${this.options.spaceKey}`,
       headers: {
-        Authorization: `Basic ${new Buffer(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
+        Authorization: `Basic ${Buffer.from(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
         'Content-Type': 'application/json'
       }
     })
@@ -69,7 +69,7 @@ export class ConfluencePlugin implements Plugin {
         method: 'POST',
         url: `${this.options.url}/rest/api/content`,
         headers: {
-          Authorization: `Basic ${new Buffer(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
+          Authorization: `Basic ${Buffer.from(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
           'Content-Type': 'application/json'
         },
         data: {
@@ -93,7 +93,7 @@ export class ConfluencePlugin implements Plugin {
         method: 'PUT',
         url: `${this.options.url}/rest/api/content`,
         headers: {
-          Authorization: `Basic ${new Buffer(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
+          Authorization: `Basic ${Buffer.from(`${this.auth.username}:${this.auth.password}`).toString('base64')}`,
           'Content-Type': 'application/json'
         },
         data: {

@@ -31,9 +31,9 @@ function readReport(report: string) {
 }
 
 export function loadReports(options: ReportOptions) {
-  const reportsDir = <string>options.reportDir || 'reports'
+  const reportsDir = (options.reportDir as string) || 'reports'
   let reports = readReportsDir(reportsDir)
-  return reports.map(report => {
+  return reports.map((report: Report) => {
     logger.info(`Loading report...${report}`)
     const data = readReport(path.resolve(`${reportsDir}/${report}`))
     const json = YAML.parse(data)
@@ -44,6 +44,6 @@ export function loadReports(options: ReportOptions) {
       throw new Error(errMsg)
     }
 
-    return <Report>Object.assign({...json, ...{ batchSize: options.batchSize }})
+    return Object.assign({...json, ...{ batchSize: options.batchSize }}) as Report
   })
 }
