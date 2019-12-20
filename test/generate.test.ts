@@ -11,6 +11,7 @@ describe('Report Generate Tests', () => {
     client = new MongoClient('mongodb://localhost:27017')
     await client.connect()
     db = client.db('test')
+    db.collection('testData').drop()
   })
 
   afterAll(async () => {
