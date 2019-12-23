@@ -1,0 +1,11 @@
+---
+collection: dataset
+name: testReport
+dataset:
+  type: last-run
+  reportField: createdAt
+  localField: timestamp
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item

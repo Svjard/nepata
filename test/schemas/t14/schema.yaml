@@ -1,0 +1,16 @@
+---
+collection: dataset
+name: testReport
+fields:
+  - name: id
+    value: _id
+    description: Object ID from the database for this item
+  - name: name
+    value: name
+    description: Blah
+  - name: age
+    value: age
+    description: Blah
+    type: number
+    restrictions:
+      discardOnTypeMismatch: true

@@ -2,16 +2,21 @@ import * as path from 'path'
 import { MongoClient } from 'mongodb'
 import { loadReports } from '../src/core/loader'
 import { generateReports } from '../src/core/generate'
-import { isDoStatement } from 'typescript'
+import { MONGO_URI, MONGO_DB } from './utils'
+
+const mongoConfig = {
+  mongoUri: MONGO_URI,
+  mongoDb: MONGO_DB,
+  batchSize: 500
+}
 
 let client: any
 let db: any
 describe('Report Generate Tests', () => {
   beforeAll(async () => {
-    client = new MongoClient('mongodb://localhost:27017')
+    client = new MongoClient(MONGO_URI)
     await client.connect()
-    db = client.db('test')
-    db.collection('testData').drop()
+    db = client.db(MONGO_DB)
   })
 
   afterAll(async () => {
@@ -35,84 +40,83 @@ describe('Report Generate Tests', () => {
     }
   })
 
-  it ('should fail if unable to connect to MongoDB', async () => {
+  it('should fail if unable to connect to MongoDB', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t3')
     })
 
     try {
-      await generateReports({
-        mongoUri: 'mongodb://localhost123:27017',
-        mongoDb: 'test',
-      }, reports)
+      await generateReports(
+        {
+          mongoUri: 'mongodb://localhost123:27017',
+          mongoDb: MONGO_DB
+        },
+        reports
+      )
     } catch (err) {
       expect(true).toBeTruthy()
       expect(err.message.indexOf('ENOTFOUND')).toBeGreaterThan(-1)
     }
   })
 
-  it ('should fail if collection does not exist in MongoDB', async () => {
+  it('should fail if collection does not exist in MongoDB', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t3')
     })
 
     try {
-      await generateReports({
-        mongoUri: 'mongodb://localhost:27017',
-        mongoDb: 'test',
-      }, reports)
+      await generateReports(
+        {
+          mongoUri: MONGO_URI,
+          mongoDb: MONGO_DB
+        },
+        reports
+      )
     } catch (err) {
       expect(true).toBeTruthy()
       expect(err.message).toEqual('Could not find the collection test')
     }
   })
 
-  it ('should fail if a related collection does not exist in MongoDB', async () => {
+  it('should fail if a related collection does not exist in MongoDB', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t4')
     })
 
-    await db.collection('dataset').insertMany([
-      { name: 'foo' }
-    ])
+    await db.collection('dataset').insertMany([{ name: 'foo' }])
 
     try {
-      await generateReports({
-        mongoUri: 'mongodb://localhost:27017',
-        mongoDb: 'test',
-      }, reports)
+      await generateReports(
+        {
+          mongoUri: MONGO_URI,
+          mongoDb: MONGO_DB
+        },
+        reports
+      )
     } catch (err) {
       expect(true).toBeTruthy()
       expect(err.message).toEqual('Could not find the related collection doesnotexist')
     }
   })
 
-  it ('should create a 1 field report from existing collection', async () => {
+  it('should create a 1 field report from existing collection', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t5')
     })
 
-    await db.collection('dataset').insertMany([
-      { name: 'foo' },
-      { name: 'bar' }
-    ])
+    await db.collection('dataset').insertMany([{ name: 'foo' }, { name: 'bar' }])
 
-    await generateReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-    }, reports)
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
 
     const collections = await db.listCollections({}).toArray()
     console.log('collections', collections)
@@ -120,19 +124,23 @@ describe('Report Generate Tests', () => {
     expect(collections.find((c: any) => c.name === 'dataset')).toBeTruthy()
     expect(collections.find((c: any) => c.name === 'testReport')).toBeTruthy()
 
-    const data = await db.collection('dataset').find({}).toArray()
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(data.length).toEqual(2) // data should be unchanged in collection we read from
-    const results = await db.collection('testReport').find({}).toArray()
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
     expect(results.length).toEqual(2)
     expect(Object.keys(results[0])).toEqual(expect.arrayContaining(['_id', 'id']))
     expect(Object.keys(results[1])).toEqual(expect.arrayContaining(['_id', 'id']))
   })
 
-  it ('should create a report with joined unwind collections', async () => {
+  it('should create a report with joined unwind collections', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t8')
     })
 
@@ -149,10 +157,13 @@ describe('Report Generate Tests', () => {
       { name: 'bar', weight: 200 }
     ])
 
-    await generateReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-    }, reports)
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
 
     const collections = await db.listCollections({}).toArray()
     expect(collections.length).toEqual(4)
@@ -161,27 +172,41 @@ describe('Report Generate Tests', () => {
     expect(collections.find((c: any) => c.name === 't2')).toBeTruthy()
     expect(collections.find((c: any) => c.name === 'testReport')).toBeTruthy()
 
-    const data = await db.collection('dataset').find({}).toArray()
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t1data = await db.collection('dataset').find({}).toArray()
+    const t1data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t1data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t2data = await db.collection('dataset').find({}).toArray()
+    const t2data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t2data.length).toEqual(2) // data should be unchanged in collection we read from
-    const results = await db.collection('testReport').find({}).toArray()
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
     expect(results.length).toEqual(2)
-    expect(Object.keys(results[0])).toEqual(expect.arrayContaining(['_id', 'id', 't1age', 't2weight']))
+    expect(Object.keys(results[0])).toEqual(
+      expect.arrayContaining(['_id', 'id', 't1age', 't2weight'])
+    )
     expect(results[0].t1age).toEqual(1)
     expect(results[0].t2weight).toEqual(100)
-    expect(Object.keys(results[1])).toEqual(expect.arrayContaining(['_id', 'id', 't1age', 't2weight']))
+    expect(Object.keys(results[1])).toEqual(
+      expect.arrayContaining(['_id', 'id', 't1age', 't2weight'])
+    )
     expect(results[1].t1age).toEqual(2)
     expect(results[1].t2weight).toEqual(200)
   })
 
-  it.skip ('should create a report with joined unwind collections and filtering applied', async () => {
+  it.skip('should create a report with joined unwind collections and filtering applied', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t8')
     })
 
@@ -198,10 +223,13 @@ describe('Report Generate Tests', () => {
       { name: 'bar', weight: 200 }
     ])
 
-    await generateReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-    }, reports)
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
 
     const collections = await db.listCollections({}).toArray()
     expect(collections.length).toEqual(4)
@@ -210,27 +238,41 @@ describe('Report Generate Tests', () => {
     expect(collections.find((c: any) => c.name === 't2')).toBeTruthy()
     expect(collections.find((c: any) => c.name === 'testReport')).toBeTruthy()
 
-    const data = await db.collection('dataset').find({}).toArray()
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t1data = await db.collection('dataset').find({}).toArray()
+    const t1data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t1data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t2data = await db.collection('dataset').find({}).toArray()
+    const t2data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t2data.length).toEqual(2) // data should be unchanged in collection we read from
-    const results = await db.collection('testReport').find({}).toArray()
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
     expect(results.length).toEqual(2)
-    expect(Object.keys(results[0])).toEqual(expect.arrayContaining(['_id', 'id', 't1age', 't2weight']))
+    expect(Object.keys(results[0])).toEqual(
+      expect.arrayContaining(['_id', 'id', 't1age', 't2weight'])
+    )
     expect(results[0].t1age).toEqual(1)
     expect(results[0].t2weight).toEqual(100)
-    expect(Object.keys(results[1])).toEqual(expect.arrayContaining(['_id', 'id', 't1age', 't2weight']))
+    expect(Object.keys(results[1])).toEqual(
+      expect.arrayContaining(['_id', 'id', 't1age', 't2weight'])
+    )
     expect(results[1].t1age).toEqual(2)
     expect(results[1].t2weight).toEqual(200)
   })
 
-  it ('should create a report with joined collections not unwinded', async () => {
+  it('should create a report with joined collections not unwinded', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t9')
     })
 
@@ -251,10 +293,13 @@ describe('Report Generate Tests', () => {
       { name: 'bar', weight: 2000 }
     ])
 
-    await generateReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-    }, reports)
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
 
     const collections = await db.listCollections({}).toArray()
     expect(collections.length).toEqual(4)
@@ -263,49 +308,205 @@ describe('Report Generate Tests', () => {
     expect(collections.find((c: any) => c.name === 't2')).toBeTruthy()
     expect(collections.find((c: any) => c.name === 'testReport')).toBeTruthy()
 
-    const data = await db.collection('dataset').find({}).toArray()
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t1data = await db.collection('dataset').find({}).toArray()
+    const t1data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t1data.length).toEqual(2) // data should be unchanged in collection we read from
-    const t2data = await db.collection('dataset').find({}).toArray()
+    const t2data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
     expect(t2data.length).toEqual(2) // data should be unchanged in collection we read from
-    const results = await db.collection('testReport').find({}).toArray()
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
     expect(results.length).toEqual(2)
-    expect(Object.keys(results[0])).toEqual(expect.arrayContaining(['_id', 'id', 'totalAge', 'totalWeight']))
+    expect(Object.keys(results[0])).toEqual(
+      expect.arrayContaining(['_id', 'id', 'totalAge', 'totalWeight'])
+    )
     expect(results[0].totalAge).toEqual(3)
     expect(results[0].totalWeight).toEqual(300)
-    expect(Object.keys(results[1])).toEqual(expect.arrayContaining(['_id', 'id', 'totalAge', 'totalWeight']))
+    expect(Object.keys(results[1])).toEqual(
+      expect.arrayContaining(['_id', 'id', 'totalAge', 'totalWeight'])
+    )
     expect(results[1].totalAge).toEqual(30)
     expect(results[1].totalWeight).toEqual(3000)
   })
 
-  it ('should honor rentention policy', async () => {
+  it('should honor rentention policy', async () => {
     const reports = await loadReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-      batchSize: 500,
+      ...mongoConfig,
       reportDir: path.resolve('test/schemas/t10')
     })
 
     const TWELVEDAYS = 12 * 24 * 60 * 60 * 1000
-    const now = (new Date()).getTime()
-    await db.collection('dataset').insertMany([
-      { name: 'foo', createdAt: new Date(now - TWELVEDAYS) },
-      { name: 'bar', createdAt: new Date() }
+    const now = new Date().getTime()
+    await db.collection('dataset').insertMany([{ name: 'foo' }, { name: 'bar' }])
+
+    await db.collection('testReport').insertMany([
+      { name: 'baz', createdAt: new Date(now - TWELVEDAYS) },
+      { name: 'ber', createdAt: new Date() }
     ])
 
-    await generateReports({
-      mongoUri: 'mongodb://localhost:27017',
-      mongoDb: 'test',
-    }, reports)
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
     const collections = await db.listCollections({}).toArray()
     expect(collections.length).toEqual(2)
 
-    const data = await db.collection('dataset').find({}).toArray()
-    expect(data.length).toEqual(1)
-    expect(data[0].name).toEqual('bar')
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
+    expect(data.length).toEqual(2)
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
+    expect(results.length).toEqual(3)
+    expect(results.find((r: any) => r.name === 'baz')).toBeFalsy()
+  })
 
-    const results = await db.collection('testReport').find({}).toArray()
+  it('should handle full replace of materialized view', async () => {
+    const reports = await loadReports({
+      ...mongoConfig,
+      reportDir: path.resolve('test/schemas/t11')
+    })
+
+    await db.collection('testReport').insertMany([{ name: 'acme' }, { name: 'omega' }])
+    await db.collection('dataset').insertMany([{ name: 'foo' }, { name: 'bar' }])
+
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
+    const collections = await db.listCollections({}).toArray()
+    expect(collections.length).toEqual(2)
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
+    expect(data.length).toEqual(2)
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
+    expect(results.length).toEqual(2)
+    expect(results.find((r: any) => r.name === 'acme')).toBeFalsy()
+    expect(results.find((r: any) => r.name === 'omega')).toBeFalsy()
+  })
+
+  it('should handle partial update of materialized view', async () => {
+    const reports = await loadReports({
+      ...mongoConfig,
+      reportDir: path.resolve('test/schemas/t12')
+    })
+
+    const now = new Date().getTime()
+    const ONEDAYMS = 24 * 60 * 60 * 1000
+    await db.collection('testReport').insertMany([
+      { name: 'acme', createdAt: new Date(now - 2 * ONEDAYMS) },
+      { name: 'omega', createdAt: new Date(now - 2 * ONEDAYMS) }
+    ])
+    await db.collection('dataset').insertMany([
+      { name: 'foo', timestamp: new Date(now - 5 * ONEDAYMS) },
+      { name: 'bar', timestamp: new Date(now - ONEDAYMS) }
+    ])
+
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
+    const collections = await db.listCollections({}).toArray()
+    expect(collections.length).toEqual(2)
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
+    expect(data.length).toEqual(2)
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
+    expect(results.length).toEqual(3)
+    expect(results.find((r: any) => r.name === 'foo')).toBeFalsy()
+  })
+
+  it('should correctly default to fallback values', async () => {
+    const reports = await loadReports({
+      ...mongoConfig,
+      reportDir: path.resolve('test/schemas/t13')
+    })
+
+    await db.collection('dataset').insertMany([{ name: 'foo', age: 10 }, { name: 'bar' }])
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
+    const collections = await db.listCollections({}).toArray()
+    expect(collections.length).toEqual(2)
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
+    expect(data.length).toEqual(2)
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
+    expect(results.length).toEqual(2)
+    expect(results.find((r: any) => r.name === 'bar' && r.age === 0)).toBeTruthy()
+  })
+
+  it('should correctly discard unmatched types', async () => {
+    const reports = await loadReports({
+      ...mongoConfig,
+      reportDir: path.resolve('test/schemas/t14')
+    })
+
+    await db.collection('dataset').insertMany([
+      { name: 'foo', age: 10 },
+      { name: 'bar', age: '20' }
+    ])
+    await generateReports(
+      {
+        mongoUri: MONGO_URI,
+        mongoDb: MONGO_DB
+      },
+      reports
+    )
+    const collections = await db.listCollections({}).toArray()
+    expect(collections.length).toEqual(2)
+    const data = await db
+      .collection('dataset')
+      .find({})
+      .toArray()
+    expect(data.length).toEqual(2)
+    const results = await db
+      .collection('testReport')
+      .find({})
+      .toArray()
     expect(results.length).toEqual(1)
+    expect(results.find((r: any) => r.name === 'bar')).toBeFalsy()
   })
 })

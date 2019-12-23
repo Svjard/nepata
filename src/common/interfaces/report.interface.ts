@@ -6,13 +6,14 @@ export interface Report {
   name: string
   collection: string
   dataset?: {
-    type: DatasetType,
-    field?: string
-  },
+    type: DatasetType
+    reportField?: string
+    localField?: string
+  }
   rentention?: {
     days?: number
     field: string
-  },
-  relations?: Array<Relation>,
+  }
+  relations?: Array<Relation>
   fields: Array<Field>
 }

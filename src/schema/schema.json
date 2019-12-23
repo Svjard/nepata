@@ -20,7 +20,8 @@
         "type": {
           "enum": ["last-run", "all"]
         },
-        "field": { "type": "string" }
+        "reportField": { "type": "string" },
+        "localField": { "type": "string" }
       },
       "allOf": [{
         "if": {
@@ -31,7 +32,7 @@
           }
         },
         "then": {
-          "required": ["type", "field"]
+          "required": ["type", "reportField", "localField"]
         },
         "else": {
           "required": ["type"]
@@ -80,7 +81,12 @@
           "value": { "type": "string" },
           "description": { "type": "string" },
           "type": { "type": "string" },
-          "fallback": { "type": ["number", "string", "boolean", "array", "object", "null"] }
+          "restrictions": {
+            "discardOnTypeMismatch": { "type": "boolean" },
+            "coerceTypes": { "type": "boolean" },
+            "discardOnFailedCoercion": { "type": "boolean" }
+          },
+          "default": { "type": ["number", "string", "boolean", "array", "object", "null"] }
         },
         "required": ["name", "value"]
       }
