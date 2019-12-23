@@ -82,9 +82,7 @@
           "description": { "type": "string" },
           "type": { "type": "string" },
           "restrictions": {
-            "discardOnTypeMismatch": { "type": "boolean" },
-            "coerceTypes": { "type": "boolean" },
-            "discardOnFailedCoercion": { "type": "boolean" }
+            "discardOnTypeMismatch": { "type": "boolean" }
           },
           "default": { "type": ["number", "string", "boolean", "array", "object", "null"] }
         },

@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb'
+import * as mongo from 'mongodb'
 import { Report, ReportOptions } from '../common/interfaces'
 import { DatasetType } from '../common/enums'
 import { logger } from './logger'
@@ -8,6 +8,7 @@ import findLastIndex from 'ramda/es/findLastIndex'
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000
 const BATCH_SIZE = 100
+const { MongoClient } = mongo
 
 export async function generateReports(options: ReportOptions, reports: Array<Report>) {
   const client = new MongoClient(options.mongoUri, options.mongoOptions)
@@ -73,15 +74,13 @@ export async function generateReports(options: ReportOptions, reports: Array<Rep
           if (report.dataset.type === DatasetType.All) {
             await db.collection(report.name).deleteMany({})
           } else if (report.dataset.type === DatasetType.LastRun) {
-            const recentValue = await db
-              .collection(report.name)
-              .findOne(
-                {},
-                {
-                  projection: { _id: false, [report.dataset.reportField as string]: true },
-                  sort: [[report.dataset.reportField as string, 'desc']]
-                }
-              )
+            const recentValue = await db.collection(report.name).findOne(
+              {},
+              {
+                projection: { _id: false, [report.dataset.reportField as string]: true },
+                sort: [[report.dataset.reportField as string, 'desc']]
+              }
+            )
             match = {
               ...match,
               [report.dataset.localField as string]: {
@@ -125,9 +124,11 @@ export async function generateReports(options: ReportOptions, reports: Array<Rep
                 obj[field.name] = field.default
               }
 
-              if (field.restrictions && field.restrictions.discardOnTypeMismatch) {
-                if (typeof obj[field.name] !== field.type) {
-                  skip = true
+              if (field.restrictions) {
+                if (field.restrictions.discardOnTypeMismatch) {
+                  if (typeof obj[field.name] !== field.type) {
+                    skip = true
+                  }
                 }
               }
             })
