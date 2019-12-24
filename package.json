@@ -1,6 +1,6 @@
 {
   "name": "nepata",
-  "version": "0.0.0-development",
+  "version": "0.1.0",
   "description": "",
   "keywords": [],
   "main": "dist/nepata.umd.js",
