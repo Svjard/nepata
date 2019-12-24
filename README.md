@@ -1,9 +1,9 @@
 # Nepata
 
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-[![Greenkeeper badge](https://badges.greenkeeper.io/Svjard/nepata.svg)](https://greenkeeper.io/)
 [![Travis](https://img.shields.io/travis/Svjard/nepata.svg)](https://travis-ci.org/Svjard/nepata)
 [![Coveralls](https://img.shields.io/coveralls/Svjard/nepata.svg)](https://coveralls.io/github/Svjard/nepata)
+[![Dependencies](https://david-dm.org/Svjard/nepata/status.svg)](https://david-dm.org/Svjard/nepata)
 [![Dev Dependencies](https://david-dm.org/Svjard/nepata/dev-status.svg)](https://david-dm.org/Svjard/nepata?type=dev)
 
 A rapid report framework around MongoDB allowing for the generation of materialized views in MongoDB against collections without an in-depth understanding of Mongo queries.
