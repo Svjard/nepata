@@ -8,6 +8,19 @@
     "collection": {
       "type": "string"
     },
+    "filter": {
+      "type": "array",
+      "items": {
+        "anyOf": [{
+          "type": "object",
+          "properties": {
+            "field": { "type": "string" },
+            "operation": { "type": "string" },
+            "value": { "type": "string" }
+          }
+        }]
+      }
+    },
     "options": {
       "type": "object",
       "properties": {

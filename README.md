@@ -10,6 +10,15 @@ A rapid report framework around MongoDB allowing for the generation of materiali
 
 ### Usage
 
+```
+import { nepata } from 'nepata'
+nepata({
+  mongoUri: 'mongodb://localhost:27017',
+  mongoDb: 'prod',
+  batchSize: 500
+  
+})
+
 
 #### Report Format
 
