@@ -98,7 +98,7 @@
   },
   "dependencies": {
     "ajv": "^6.12.3",
-    "axios": "^0.19.0",
+    "axios": "^0.21.2",
     "jmespath": "^0.15.0",
     "mongodb": "^3.4.1",
     "ramda": "^0.26.1",
